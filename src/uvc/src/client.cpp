@@ -17,7 +17,7 @@ int main(int argc, char **argv)
 
     uvc::set_enable srv_set_enable;
 
-    srv_set_enable.request.enable = false;
+    srv_set_enable.request.enable = true;
 
     service_client_set_enable.call(srv_set_enable);
 
