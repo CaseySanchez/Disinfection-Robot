@@ -3,6 +3,7 @@
 #include "ros/ros.h"
 #include "ros/console.h"
 
+#include "uvc/get_lamp.h"
 #include "uvc/set_lamp.h"
 
 class LampNode : public ros::NodeHandle
@@ -15,6 +16,6 @@ class LampNode : public ros::NodeHandle
 public:
     LampNode();
 
-    bool onGetLamp(uvc::set_lamp::Request &request, uvc::set_lamp::Response &response);
+    bool onGetLamp(uvc::get_lamp::Request &request, uvc::get_lamp::Response &response);
     bool onSetLamp(uvc::set_lamp::Request &request, uvc::set_lamp::Response &response);
 };

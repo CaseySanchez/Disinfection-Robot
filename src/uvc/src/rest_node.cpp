@@ -16,7 +16,7 @@ RestNode::RestNode() : ros::NodeHandle("/"), m_listener("http://0.0.0.0:8080")
     m_set_lamp_client = serviceClient<uvc::set_lamp>("lamp_node/set_lamp");
 }
 
-~RestNode::RestNode()
+RestNode::~RestNode()
 {
     m_listener.close().wait();
 }
@@ -34,10 +34,10 @@ void RestNode::getHandler(http_request request)
 
         response["active"] = get_lamp.response.active;
 
-        request->reply(status_codes::OK, response);
+        request.reply(status_codes::OK, response);
     }
     else {
-        request->reply(status_codes::BadRequest, { });
+        request.reply(status_codes::BadRequest);
     }
 }
 
@@ -55,7 +55,7 @@ void RestNode::postHandler(http_request request)
 
             m_set_lamp_client.call(set_lamp);
 
-            request->reply(status_codes::OK, { });
+            request.reply(status_codes::OK);
         }
         else if (query["active"] == "false") {
             uvc::set_lamp set_lamp;
@@ -64,11 +64,11 @@ void RestNode::postHandler(http_request request)
 
             m_set_lamp_client.call(set_lamp);
 
-            request->reply(status_codes::OK, { });
+            request.reply(status_codes::OK);
         }
     }
     else {
-        request->reply(status_codes::BadRequest, { });
+        request.reply(status_codes::BadRequest);
     }
 }
 

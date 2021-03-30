@@ -8,6 +8,7 @@
 #include "cpprest/json.h"
 #include "cpprest/uri.h"
 
+#include "uvc/get_lamp.h"
 #include "uvc/set_lamp.h"
 
 using namespace web;

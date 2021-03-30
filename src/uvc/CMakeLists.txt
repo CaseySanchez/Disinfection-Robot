@@ -14,7 +14,7 @@ set(cpprestsdk_DIR /usr/lib/${CMAKE_LIBRARY_ARCHITECTURE}/cmake/)
 find_package(cpprestsdk REQUIRED)
 
 ## Declare ROS messages and services
-add_service_files(FILES set_lamp.srv)
+add_service_files(FILES get_lamp.srv set_lamp.srv)
 
 ## Generate added messages and services
 generate_messages(DEPENDENCIES std_msgs)

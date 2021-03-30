@@ -9,11 +9,11 @@ LampNode::LampNode() : ros::NodeHandle("~"), m_active(false)
     
     pinMode(8, OUTPUT);
 
-    m_get_lamp_service = advertiseService("get_lamp", std::bind(&LampNode::onGetLamp, this, std::placeholders::_1, std::placeholders::_2));
-    m_set_lamp_service = advertiseService("set_lamp", std::bind(&LampNode::onSetLamp, this, std::placeholders::_1, std::placeholders::_2));
+    m_get_lamp_service = advertiseService("get_lamp", &LampNode::onGetLamp, this);
+    m_set_lamp_service = advertiseService("set_lamp", &LampNode::onSetLamp, this);
 }
 
-bool LampNode::onGetLamp(uvc::set_lamp::Request &request, uvc::set_lamp::Response &response)
+bool LampNode::onGetLamp(uvc::get_lamp::Request &request, uvc::get_lamp::Response &response)
 {
     response.active = m_active;
 
