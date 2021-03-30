@@ -19,21 +19,21 @@ class RestNode : public ros::NodeHandle
 {
     http_listener m_listener;
 
-    ros::ServiceClient set_lamp_client;
+    ros::ServiceClient m_set_lamp_client;
 
 public:
-    RestNode() : ros::NodeHandle("~"), m_listener("http://0.0.0.0:8080")
+    RestNode() : ros::NodeHandle("/"), m_listener("http://0.0.0.0:8080")
     {
         m_listener.support(methods::POST, std::bind(&RestNode::postHandler, this, std::placeholders::_1));
 
-        m_listener.open();
+        m_listener.open().wait();
 
-        set_lamp_client = serviceClient<uvc::set_lamp>("set_lamp");
+        m_set_lamp_client = serviceClient<uvc::set_lamp>("lamp_node/set_lamp");
     }
 
     ~RestNode()
     {
-        m_listener.close();
+        m_listener.close().wait();
     }
 
     void postHandler(http_request message)
@@ -48,14 +48,14 @@ public:
 
                 set_lamp.request.active = true;
 
-                set_lamp_client.call(set_lamp);
+                m_set_lamp_client.call(set_lamp);
             }
             else if (query["active"] == "false") {
                 uvc::set_lamp set_lamp;
 
                 set_lamp.request.active = false;
 
-                set_lamp_client.call(set_lamp);
+                m_set_lamp_client.call(set_lamp);
             }
         }
     }

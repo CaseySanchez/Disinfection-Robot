@@ -35,7 +35,7 @@ int main(int argc, char **argv)
     LampNode lamp_node;
     
     while (ros::ok()) {
-        ros::spin();
+        ros::spinOnce();
     }
 
     return 0;
