@@ -3,7 +3,17 @@
 #include "ros/ros.h"
 #include "ros/console.h"
 
+#include "cpprest/asyncrt_utils.h"
+#include "cpprest/http_listener.h"
+#include "cpprest/json.h"
+#include "cpprest/uri.h"
+
 #include "uvc/set_lamp.h"
+
+using namespace web;
+using namespace http;
+using namespace utility;
+using namespace http::experimental::listener;
 
 class RestNode : public ros::NodeHandle
 {
