@@ -3,18 +3,28 @@
 
 #include "lamp_node.hpp"
 
-LampNode::LampNode() : ros::NodeHandle("~")
+LampNode::LampNode() : ros::NodeHandle("~"), m_active(false)
 {
     wiringPiSetup();
     
     pinMode(8, OUTPUT);
 
-    m_set_lamp_service = advertiseService("set_lamp", &LampNode::onSetLamp, this);
+    m_get_lamp_service = advertiseService("get_lamp", std::bind(&LampNode::onGetLamp, this, std::placeholders::_1, std::placeholders::_2));
+    m_set_lamp_service = advertiseService("set_lamp", std::bind(&LampNode::onSetLamp, this, std::placeholders::_1, std::placeholders::_2));
+}
+
+bool LampNode::onGetLamp(uvc::set_lamp::Request &request, uvc::set_lamp::Response &response)
+{
+    response.active = m_active;
+
+    return true;
 }
 
 bool LampNode::onSetLamp(uvc::set_lamp::Request &request, uvc::set_lamp::Response &response)
 {
-    if (request.active) {
+    m_active = request.active;
+
+    if (m_active) {
         ROS_INFO("ON");
 
         digitalWrite(8, 1);

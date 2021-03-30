@@ -19,6 +19,7 @@ class RestNode : public ros::NodeHandle
 {
     http_listener m_listener;
 
+    ros::ServiceClient m_get_lamp_client;
     ros::ServiceClient m_set_lamp_client;
 
 public:
@@ -26,5 +27,6 @@ public:
 
     ~RestNode();
 
+    void getHandler(http_request message);
     void postHandler(http_request message);
 };
