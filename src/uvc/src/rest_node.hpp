@@ -22,41 +22,9 @@ class RestNode : public ros::NodeHandle
     ros::ServiceClient m_set_lamp_client;
 
 public:
-    RestNode() : ros::NodeHandle("/"), m_listener("http://0.0.0.0:8080")
-    {
-        m_listener.support(methods::POST, std::bind(&RestNode::postHandler, this, std::placeholders::_1));
+    RestNode();
 
-        m_listener.open().wait();
+    ~RestNode();
 
-        m_set_lamp_client = serviceClient<uvc::set_lamp>("lamp_node/set_lamp");
-    }
-
-    ~RestNode()
-    {
-        m_listener.close().wait();
-    }
-
-    void postHandler(http_request message)
-    {
-        auto paths = uri::split_path(uri::decode(message.relative_uri().path()));
-
-        auto query = uri::split_query(uri::decode(message.request_uri().query()));
-
-        if (paths[0] == "set_lamp") {
-            if (query["active"] == "true") {
-                uvc::set_lamp set_lamp;
-
-                set_lamp.request.active = true;
-
-                m_set_lamp_client.call(set_lamp);
-            }
-            else if (query["active"] == "false") {
-                uvc::set_lamp set_lamp;
-
-                set_lamp.request.active = false;
-
-                m_set_lamp_client.call(set_lamp);
-            }
-        }
-    }
+    void postHandler(http_request message);
 };
