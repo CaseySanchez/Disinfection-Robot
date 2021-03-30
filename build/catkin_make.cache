@@ -1,0 +1,2 @@
+uvc
+-DCATKIN_DEVEL_PREFIX=/home/pi/Desktop/Disinfection-Robot/devel -DCMAKE_INSTALL_PREFIX=/home/pi/Desktop/Disinfection-Robot/install -G Unix Makefiles

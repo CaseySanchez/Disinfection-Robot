@@ -21,3 +21,11 @@ void EnableControl::onEnableChanged(uvc::enable::ConstPtr const &message)
         onDisable();
     }
 }
+
+void EnableControl::onEnable()
+{
+}
+
+void EnableControl::onDisable()
+{
+}

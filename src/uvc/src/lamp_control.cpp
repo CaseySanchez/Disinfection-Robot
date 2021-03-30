@@ -32,12 +32,12 @@ bool LampControl::onSetLamp(uvc::set_lamp::Request &request, uvc::set_lamp::Resp
     return false;
 }
 
-void LampControl::onEnable() override
+void LampControl::onEnable()
 {
     digitalWrite(8, 0);
 }
 
-void LampControl::onDisable() override
+void LampControl::onDisable()
 {
     digitalWrite(8, 0);
 }

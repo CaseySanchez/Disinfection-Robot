@@ -23,11 +23,11 @@ include_directories(include ${catkin_INCLUDE_DIRS} ${WIRINGPI_INCLUDE_DIRS})
 
 # %Tag(SRVCLIENT)%
 add_executable(system_control src/system_control.cpp)
-target_link_libraries(system_control ${catkin_LIBRARIES} ${wiringPi_LIB})
+target_link_libraries(system_control ${catkin_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 add_dependencies(system_control uvc_gencpp)
 
-add_executable(lamp_control src/lamp_control.cpp src/enable_control.cpp)
-target_link_libraries(lamp_control ${catkin_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+add_executable(lamp_control src/enable_control.cpp src/lamp_control.cpp)
+target_link_libraries(lamp_control ${catkin_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${wiringPi_LIB})
 add_dependencies(lamp_control uvc_gencpp)
 
 add_executable(client src/client.cpp)

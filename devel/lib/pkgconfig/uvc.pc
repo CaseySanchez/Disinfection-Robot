@@ -1,0 +1,8 @@
+prefix=/home/pi/Desktop/Disinfection-Robot/devel
+
+Name: uvc
+Description: Description of uvc
+Version: 0.0.0
+Cflags: -I/home/pi/Desktop/Disinfection-Robot/devel/include
+Libs: -L${prefix}/lib 
+Requires: 
