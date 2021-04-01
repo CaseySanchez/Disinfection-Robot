@@ -1,9 +1,8 @@
 #pragma once
 
-#include "thread.hpp"
+#include <wiringPi.h>
 
-#include "uvc/get_lamp.h"
-#include "uvc/set_lamp.h"
+#include "thread.hpp"
 
 class Controller : private Thread
 {
@@ -55,21 +54,17 @@ class AutoController : public Controller
 {
 public:
     void start() override
-    {
-        uvc::set_lamp set_lamp;
+    {        
+        wiringPiSetup();
+        
+        pinMode(8, OUTPUT);
 
-        set_lamp.request.active = true;
-
-        m_set_lamp_client.call(set_lamp);
+        digitalWrite(8, 1);
     }
 
     void stop() override
     {
-        uvc::set_lamp set_lamp;
-
-        set_lamp.request.active = false;
-
-        m_set_lamp_client.call(set_lamp);
+        digitalWrite(8, 0);
     }
 
     void update() override
