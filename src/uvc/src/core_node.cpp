@@ -3,13 +3,13 @@
 
 #include "core_node.hpp"
 
-CoreNode::CoreNode() : ros::NodeHandle("~"), m_mode(0)
+CoreNode::CoreNode() : ros::NodeHandle("~"), m_mode(IDLE)
 {
     m_get_mode_service = advertiseService("get_mode", &CoreNode::onGetMode, this);
     m_set_mode_service = advertiseService("set_mode", &CoreNode::onSetMode, this);
 }
 
-bool CoreNode::onGetMode(uvc::get_lamp::Request &request, uvc::get_lamp::Response &response)
+bool CoreNode::onGetMode(uvc::get_mode::Request &request, uvc::get_mode::Response &response)
 {
     int32_t mode = static_cast<int32_t>(m_mode);
 
@@ -18,7 +18,7 @@ bool CoreNode::onGetMode(uvc::get_lamp::Request &request, uvc::get_lamp::Respons
     return true;
 }
 
-bool CoreNode::onSetMode(uvc::set_lamp::Request &request, uvc::set_lamp::Response &response)
+bool CoreNode::onSetMode(uvc::set_mode::Request &request, uvc::set_mode::Response &response)
 {
     ModeType mode = static_cast<ModeType>(request.mode);
 

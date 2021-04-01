@@ -8,6 +8,8 @@
 #include "uvc/get_mode.h"
 #include "uvc/set_mode.h"
 
+#include "controller.hpp"
+
 class CoreNode : public ros::NodeHandle
 {
     enum ModeType : int32_t

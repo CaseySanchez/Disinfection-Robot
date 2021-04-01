@@ -18,3 +18,15 @@ void Controller::run()
 {
     update();
 }
+
+void Controller::start()
+{
+}
+
+void Controller::stop()
+{
+}
+
+void Controller::update()
+{
+}

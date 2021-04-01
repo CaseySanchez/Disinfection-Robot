@@ -32,9 +32,9 @@ void RestNode::getHandler(http_request request)
 
         auto response = json::value::object();
 
-        response["mode"] = get_lamp.response.mode;
+        response["mode"] = get_mode.response.mode;
 
-        request.reply(status_code::OK, response);
+        request.reply(status_codes::OK, response);
     }
     else {
         request.reply(status_codes::BadRequest);

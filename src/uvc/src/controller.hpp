@@ -2,6 +2,9 @@
 
 #include <wiringPi.h>
 
+#include "ros/ros.h"
+#include "ros/console.h"
+
 #include "thread.hpp"
 
 class Controller : private Thread
@@ -13,9 +16,9 @@ public:
 
     void run() override;
 
-    virtual void start() = 0;
-    virtual void stop() = 0;
-    virtual void update() = 0;
+    virtual void start();
+    virtual void stop();
+    virtual void update();
 };
 
 class IdleController : public Controller

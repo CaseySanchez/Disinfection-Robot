@@ -8,6 +8,9 @@
 #include "cpprest/json.h"
 #include "cpprest/uri.h"
 
+#include "uvc/get_mode.h"
+#include "uvc/set_mode.h"
+
 using namespace web;
 using namespace http;
 using namespace utility;
