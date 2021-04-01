@@ -10,10 +10,6 @@
 class Controller
 {
 public:
-    Controller();
-
-    ~Controller();
-
     virtual void start();
     virtual void stop();
     virtual void update();

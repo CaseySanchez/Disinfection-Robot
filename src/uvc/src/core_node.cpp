@@ -33,7 +33,11 @@ void CoreNode::setMode(ModeType const &mode)
 {
     m_mode = mode;
 
-    m_controller.reset();
+    if (m_controller) {
+        m_controller->stop();
+
+        m_controller.reset();
+    }
 
     switch (mode) {
         case IDLE:
@@ -53,6 +57,10 @@ void CoreNode::setMode(ModeType const &mode)
 
         default:
             break;
+    }
+
+    if (m_controller) {
+        m_controller->start();
     }
 }
 
