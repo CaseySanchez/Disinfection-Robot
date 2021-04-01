@@ -12,8 +12,8 @@ RestNode::RestNode() : ros::NodeHandle("/"), m_listener("http://0.0.0.0:8080")
 
     m_listener.open().wait();
 
-    m_get_lamp_client = serviceClient<uvc::set_lamp>("lamp_node/get_lamp");
-    m_set_lamp_client = serviceClient<uvc::set_lamp>("lamp_node/set_lamp");
+    m_get_mode_client = serviceClient<uvc::get_mode>("core_node/get_mode");
+    m_set_mode_client = serviceClient<uvc::set_mode>("core_node/set_mode");
 }
 
 RestNode::~RestNode()
@@ -25,16 +25,16 @@ void RestNode::getHandler(http_request request)
 {
     auto paths = uri::split_path(uri::decode(request.relative_uri().path()));
 
-    if (paths[0] == "get_lamp") {
-        uvc::get_lamp get_lamp;
+    if (paths[0] == "get_mode") {
+        uvc::get_mode get_mode;
 
-        m_get_lamp_client.call(get_lamp);
+        m_get_mode_client.call(get_mode);
 
         auto response = json::value::object();
 
-        response["active"] = get_lamp.response.active;
+        response["mode"] = get_lamp.response.mode;
 
-        request.reply(status_codes::OK, response);
+        request.reply(status_code::OK, response);
     }
     else {
         request.reply(status_codes::BadRequest);
@@ -47,24 +47,36 @@ void RestNode::postHandler(http_request request)
 
     auto query = uri::split_query(uri::decode(request.request_uri().query()));
 
-    if (paths[0] == "set_lamp") {
-        if (query["active"] == "true") {
-            uvc::set_lamp set_lamp;
+    if (paths[0] == "set_mode") {
+        if (query["mode"] == "idle") {
+            uvc::set_mode set_mode;
 
-            set_lamp.request.active = true;
+            set_mode.request.mode = 0;
 
-            m_set_lamp_client.call(set_lamp);
+            m_set_mode_client.call(set_mode);
 
             request.reply(status_codes::OK);
         }
-        else if (query["active"] == "false") {
-            uvc::set_lamp set_lamp;
+        else if (query["mode"] == "manual") {
+            uvc::set_mode set_mode;
 
-            set_lamp.request.active = false;
+            set_mode.request.mode = 1;
 
-            m_set_lamp_client.call(set_lamp);
+            m_set_mode_client.call(set_mode);
 
             request.reply(status_codes::OK);
+        }
+        else if (query["mode"] == "auto") {
+            uvc::set_mode set_mode;
+
+            set_mode.request.mode = 2;
+
+            m_set_mode_client.call(set_mode);
+
+            request.reply(status_codes::OK);
+        }
+        else {
+            request.reply(status_codes::BadRequest);
         }
     }
     else {

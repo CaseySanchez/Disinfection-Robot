@@ -8,9 +8,6 @@
 #include "cpprest/json.h"
 #include "cpprest/uri.h"
 
-#include "uvc/get_lamp.h"
-#include "uvc/set_lamp.h"
-
 using namespace web;
 using namespace http;
 using namespace utility;
@@ -20,8 +17,8 @@ class RestNode : public ros::NodeHandle
 {
     http_listener m_listener;
 
-    ros::ServiceClient m_get_lamp_client;
-    ros::ServiceClient m_set_lamp_client;
+    ros::ServiceClient m_get_mode_client;
+    ros::ServiceClient m_set_mode_client;
 
 public:
     RestNode();
