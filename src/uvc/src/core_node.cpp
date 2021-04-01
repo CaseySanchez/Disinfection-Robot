@@ -3,8 +3,10 @@
 
 #include "core_node.hpp"
 
-CoreNode::CoreNode() : ros::NodeHandle("~"), m_mode(IDLE)
+CoreNode::CoreNode() : ros::NodeHandle("~")
 {
+    setMode(IDLE);
+
     m_get_mode_service = advertiseService("get_mode", &CoreNode::onGetMode, this);
     m_set_mode_service = advertiseService("set_mode", &CoreNode::onSetMode, this);
 }
@@ -22,39 +24,36 @@ bool CoreNode::onSetMode(uvc::set_mode::Request &request, uvc::set_mode::Respons
 {
     ModeType mode = static_cast<ModeType>(request.mode);
 
+    setMode(mode);
+
+    return true;
+}
+
+void CoreNode::setMode(ModeType const &mode)
+{
+    m_mode = mode;
+
+    m_controller.reset();
+
     switch (mode) {
         case IDLE:
-            m_controller.reset();
-
             m_controller = std::unique_ptr<IdleController>(new IdleController);
-
-            m_mode = IDLE;
         
             break;
 
         case MANUAL:
-            m_controller.reset();
-
             m_controller = std::unique_ptr<ManualController>(new ManualController);
-
-            m_mode = MANUAL;
 
             break;
 
         case AUTO:
-            m_controller.reset();
-
             m_controller = std::unique_ptr<AutoController>(new AutoController);
-
-            m_mode = AUTO;
 
             break;
 
         default:
-            return false;
+            break;
     }
-
-    return true;
 }
 
 void CoreNode::update()

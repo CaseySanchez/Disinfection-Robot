@@ -7,14 +7,12 @@
 
 #include "thread.hpp"
 
-class Controller : private Thread
+class Controller
 {
 public:
     Controller();
 
     ~Controller();
-
-    void run() override;
 
     virtual void start();
     virtual void stop();

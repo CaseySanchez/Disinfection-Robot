@@ -32,5 +32,7 @@ public:
     bool onGetMode(uvc::get_mode::Request &request, uvc::get_mode::Response &response);
     bool onSetMode(uvc::set_mode::Request &request, uvc::set_mode::Response &response);
 
+    void setMode(ModeType const &mode);
+
     void update();
 };
