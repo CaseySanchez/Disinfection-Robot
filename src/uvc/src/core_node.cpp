@@ -26,7 +26,7 @@ bool CoreNode::onSetMode(uvc::set_lamp::Request &request, uvc::set_lamp::Respons
         case IDLE:
             m_controller.reset();
 
-            m_controller = std::shared_ptr<IdleController>(new IdleController);
+            m_controller = std::unique_ptr<IdleController>(new IdleController);
 
             m_mode = IDLE;
         
@@ -35,7 +35,7 @@ bool CoreNode::onSetMode(uvc::set_lamp::Request &request, uvc::set_lamp::Respons
         case MANUAL:
             m_controller.reset();
 
-            m_controller = std::shared_ptr<ManualController>(new ManualController);
+            m_controller = std::unique_ptr<ManualController>(new ManualController);
 
             m_mode = MANUAL;
 
@@ -44,7 +44,7 @@ bool CoreNode::onSetMode(uvc::set_lamp::Request &request, uvc::set_lamp::Respons
         case AUTO:
             m_controller.reset();
 
-            m_controller = std::shared_ptr<AutoController>(new AutoController);
+            m_controller = std::unique_ptr<AutoController>(new AutoController);
 
             m_mode = AUTO;
 
@@ -59,6 +59,7 @@ bool CoreNode::onSetMode(uvc::set_lamp::Request &request, uvc::set_lamp::Respons
 
 void CoreNode::update()
 {
+    m_controller->update();
 }
 
 int main(int argc, char **argv)
@@ -69,6 +70,8 @@ int main(int argc, char **argv)
     
     while (ros::ok()) {
         ros::spinOnce();
+
+        core_node.update();
     }
 
     return 0;

@@ -19,7 +19,7 @@ class CoreNode : public ros::NodeHandle
 
     ModeType m_mode;
 
-    std::shared_ptr<Controller> m_controller;
+    std::unique_ptr<Controller> m_controller;
 
     ros::ServiceServer m_get_mode_service;
     ros::ServiceServer m_set_mode_service;
