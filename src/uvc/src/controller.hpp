@@ -54,7 +54,9 @@ class AutoController : public Controller
 {
 public:
     void start() override
-    {        
+    {
+        ROS_INFO("start");
+
         wiringPiSetup();
         
         pinMode(8, OUTPUT);
@@ -64,10 +66,13 @@ public:
 
     void stop() override
     {
+        ROS_INFO("stop");
+
         digitalWrite(8, 0);
     }
 
     void update() override
     {
+        ROS_INFO("update");
     }
 };
