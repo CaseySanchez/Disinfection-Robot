@@ -34,6 +34,8 @@ void CoreNode::setMode(ModeType const &mode)
     m_mode = mode;
 
     if (m_controller) {
+        m_controller->stop();
+
         m_controller.reset();
     }
 
@@ -56,6 +58,15 @@ void CoreNode::setMode(ModeType const &mode)
         default:
             break;
     }
+
+    if (m_controller) {
+        m_controller->start();
+    }
+}
+
+void CoreNode::update()
+{
+    m_controller->update();
 }
 
 int main(int argc, char **argv)
@@ -66,6 +77,8 @@ int main(int argc, char **argv)
     
     while (ros::ok()) {
         ros::spinOnce();
+
+        core_node.update();
     }
 
     return 0;

@@ -1,34 +1,18 @@
 #pragma once
 
-#include <thread>
-#include <chrono>
-
 #include <wiringPi.h>
 
 #include "ros/ros.h"
 #include "ros/console.h"
 
+#include "thread.hpp"
+
 class Controller
 {
-	std::unique_ptr<std::thread> m_thread;
-	std::atomic<bool> m_running;
-
-    std::chrono::time_point m_time_stamp;
-
 public:
-	Controller(Controller const &) = delete;
-	Controller &operator=(Controller const &) = delete;
-
-    Controller();
-
-    virtual ~Controller();
-
-    virtual void start() = 0;
-    virtual void stop() = 0;
-    virtual void update(double const &delta_time) = 0;
-
-private:
-    void task();
+    virtual void start();
+    virtual void stop();
+    virtual void update();
 };
 
 class IdleController : public Controller
@@ -42,7 +26,7 @@ public:
     {
     }
 
-    void update(double const &delta_time) override
+    void update() override
     {
     }
 };
@@ -58,7 +42,7 @@ public:
     {
     }
 
-    void update(double const &delta_time) override
+    void update() override
     {
     }
 };
@@ -75,8 +59,6 @@ public:
         pinMode(8, OUTPUT);
 
         digitalWrite(8, 1);
-
-        m_time_stamp = std::chrono::high_resolution_clock::now();
     }
 
     void stop() override
@@ -86,7 +68,7 @@ public:
         digitalWrite(8, 0);
     }
 
-    void update(double const &delta_time) override
+    void update() override
     {
         ROS_INFO("update");
     }
