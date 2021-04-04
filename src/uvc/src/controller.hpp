@@ -11,6 +11,8 @@
 #include "ros/ros.h"
 #include "ros/console.h"
 
+#include "json.hpp"
+
 class Controller
 {
 	std::thread m_thread;
@@ -131,18 +133,16 @@ public:
 
     void messageHandler(websocketpp::connection_hdl connection_hdl, server::message_ptr message) 
     {
-        if (*m_client == connection_hdl) {
-            std::lock_guard<std::mutex> lock_guard(m_mutex);
+        std::lock_guard<std::mutex> lock_guard(m_mutex);
 
-            auto json = nlohmann::json::parse(message->get_payload());
+        auto json = nlohmann::json::parse(message->get_payload());
 
-            m_motor_speed[0] = json["motor_0"];
-            m_motor_speed[1] = json["motor_1"];
-            m_motor_speed[2] = json["motor_2"];
-            m_motor_speed[3] = json["motor_3"];
+        m_motor_speed[0] = json["motor_0"];
+        m_motor_speed[1] = json["motor_1"];
+        m_motor_speed[2] = json["motor_2"];
+        m_motor_speed[3] = json["motor_3"];
 
-            std::cout << message->get_payload() << std::endl;
-        }
+        std::cout << message->get_payload() << std::endl;
     }
 };
 
