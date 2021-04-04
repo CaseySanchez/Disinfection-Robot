@@ -33,12 +33,6 @@ void CoreNode::setMode(ModeType const &mode)
 {
     m_mode = mode;
 
-    if (m_controller) {
-        m_controller->stop();
-
-        m_controller.reset();
-    }
-
     switch (mode) {
         case IDLE:
             m_controller = std::unique_ptr<IdleController>(new IdleController);
@@ -58,15 +52,6 @@ void CoreNode::setMode(ModeType const &mode)
         default:
             break;
     }
-
-    if (m_controller) {
-        m_controller->start();
-    }
-}
-
-void CoreNode::update()
-{
-    m_controller->update();
 }
 
 int main(int argc, char **argv)
@@ -77,8 +62,6 @@ int main(int argc, char **argv)
     
     while (ros::ok()) {
         ros::spinOnce();
-
-        core_node.update();
     }
 
     return 0;
