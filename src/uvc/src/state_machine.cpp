@@ -1,10 +1,5 @@
 #include "state_machine.hpp"
 
-#pragma once
-
-#include <memory>
-#include <optional>
-
 void State::enter()
 {
 }

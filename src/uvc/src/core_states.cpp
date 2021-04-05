@@ -1,20 +1,5 @@
 #include "core_states.hpp"
 
-#pragma once
-
-#include <websocketpp/config/asio_no_tls.hpp>
-#include <websocketpp/server.hpp>
-
-#include <wiringPi.h>
-#include <softPwm.h>
-
-#include "ros/ros.h"
-#include "ros/console.h"
-
-#include "json.hpp"
-
-#include "state_machine.hpp"
-
 void IdleState::enter()
 {
 }

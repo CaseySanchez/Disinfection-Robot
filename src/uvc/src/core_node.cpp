@@ -1,6 +1,3 @@
-#include "ros/ros.h"
-#include "ros/console.h"
-
 #include "core_node.hpp"
 
 CoreNode::CoreNode() : ros::NodeHandle("~"), m_state_machine(std::make_shared<IdleState>())
