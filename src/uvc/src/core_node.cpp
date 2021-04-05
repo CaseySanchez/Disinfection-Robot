@@ -3,70 +3,53 @@
 
 #include "core_node.hpp"
 
-CoreNode::CoreNode() : ros::NodeHandle("~")
+CoreNode::CoreNode() : ros::NodeHandle("~"), m_state_machine(std::make_shared<IdleState>())
 {
-    setMode(IDLE);
-
-    m_get_mode_service = advertiseService("get_mode", &CoreNode::onGetMode, this);
-    m_set_mode_service = advertiseService("set_mode", &CoreNode::onSetMode, this);
+    m_get_state_service = advertiseService("get_state", &CoreNode::onGetState, this);
+    m_set_state_service = advertiseService("set_state", &CoreNode::onSetState, this);
 }
 
-bool CoreNode::onGetMode(uvc::get_mode::Request &request, uvc::get_mode::Response &response)
+bool CoreNode::onGetState(uvc::get_state::Request &request, uvc::get_state::Response &response)
 {
-    int32_t mode = static_cast<int32_t>(m_mode);
+    int32_t state = static_cast<int32_t>(m_state);
 
-    response.mode = mode;
+    response.state = state;
 
     return true;
 }
 
-bool CoreNode::onSetMode(uvc::set_mode::Request &request, uvc::set_mode::Response &response)
+bool CoreNode::onSetState(uvc::set_state::Request &request, uvc::set_state::Response &response)
 {
-    ModeType mode = static_cast<ModeType>(request.mode);
+    StateType state = static_cast<StateType>(request.state);
 
-    setMode(mode);
+    m_state = state;
 
-    return true;
-}
-
-void CoreNode::setMode(ModeType const &mode)
-{
-    m_mode = mode;
-
-    if (m_controller) {
-        m_controller->stop();
-
-        m_controller.reset();
-    }
-
-    switch (mode) {
-        case IDLE:
-            m_controller = std::unique_ptr<IdleController>(new IdleController);
+    switch (state) {
+    case IDLE:
+        m_state_machine.setState(std::make_shared<IdleState>());
         
-            break;
+        break;
 
-        case MANUAL:
-            m_controller = std::unique_ptr<ManualController>(new ManualController);
+    case MANUAL:
+        m_state_machine.setState(std::make_shared<ManualState>());
 
-            break;
+        break;
+    
+    case AUTO:
+        m_state_machine.setState(std::make_shared<AutoState>());
 
-        case AUTO:
-            m_controller = std::unique_ptr<AutoController>(new AutoController);
+        break;
 
-            break;
-
-        default:
-            break;
+    default:
+        return false;
     }
 
-    if (m_controller) {
-        m_controller->start();
-    }
+    return true;
 }
 
 void CoreNode::update()
 {
-    m_controller->update();
+    m_state_machine.update();
 }
 
 int main(int argc, char **argv)
