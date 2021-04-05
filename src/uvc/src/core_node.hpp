@@ -5,8 +5,8 @@
 #include "ros/ros.h"
 #include "ros/console.h"
 
-#include "uvc/get_mode.h"
-#include "uvc/set_mode.h"
+#include "uvc/get_state.h"
+#include "uvc/set_state.h"
 
 #include "state_machine.hpp"
 #include "core_states.hpp"

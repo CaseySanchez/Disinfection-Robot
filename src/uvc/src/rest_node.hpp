@@ -8,8 +8,8 @@
 #include "cpprest/json.h"
 #include "cpprest/uri.h"
 
-#include "uvc/get_mode.h"
-#include "uvc/set_mode.h"
+#include "uvc/get_state.h"
+#include "uvc/set_state.h"
 
 using namespace web;
 using namespace http;
@@ -20,8 +20,8 @@ class RestNode : public ros::NodeHandle
 {
     http_listener m_listener;
 
-    ros::ServiceClient m_get_mode_client;
-    ros::ServiceClient m_set_mode_client;
+    ros::ServiceClient m_get_state_client;
+    ros::ServiceClient m_set_state_client;
 
 public:
     RestNode();

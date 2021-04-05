@@ -11,6 +11,8 @@ CoreNode::CoreNode() : ros::NodeHandle("~"), m_state_machine(std::make_shared<Id
 
 bool CoreNode::onGetState(uvc::get_state::Request &request, uvc::get_state::Response &response)
 {
+    ROS_INFO("GET");
+
     int32_t state = static_cast<int32_t>(m_state);
 
     response.state = state;
@@ -20,6 +22,8 @@ bool CoreNode::onGetState(uvc::get_state::Request &request, uvc::get_state::Resp
 
 bool CoreNode::onSetState(uvc::set_state::Request &request, uvc::set_state::Response &response)
 {
+    ROS_INFO("SET");
+
     StateType state = static_cast<StateType>(request.state);
 
     m_state = state;
