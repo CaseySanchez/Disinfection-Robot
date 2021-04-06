@@ -52,6 +52,15 @@ std::optional<std::shared_ptr<State>> ManualState::update()
 {
     std::lock_guard<std::mutex> lock_guard(m_mutex);
 
+    auto lerp = [](float const &a, float const &b, float const &t) -> float {
+        return a * (t - 1.0f) + b * t;
+    }
+
+    m_motor_speed[0] = lerp(m_motor_speed[0], m_target_speed[0], 0.1f);
+    m_motor_speed[1] = lerp(m_motor_speed[1], m_target_speed[1], 0.1f);
+    m_motor_speed[2] = lerp(m_motor_speed[2], m_target_speed[2], 0.1f);
+    m_motor_speed[3] = lerp(m_motor_speed[3], m_target_speed[3], 0.1f);
+
     digitalWrite(26, m_motor_speed[0] > 0.0 ? 0 : 1);
     digitalWrite(27, m_motor_speed[1] > 0.0 ? 0 : 1);
     digitalWrite(28, m_motor_speed[2] > 0.0 ? 0 : 1);
@@ -91,10 +100,10 @@ void ManualState::messageHandler(websocketpp::connection_hdl connection_hdl, web
 
     auto json = nlohmann::json::parse(message->get_payload());
 
-    m_motor_speed[0] = json["motor_0"];
-    m_motor_speed[1] = json["motor_1"];
-    m_motor_speed[2] = json["motor_2"];
-    m_motor_speed[3] = json["motor_3"];
+    m_target_speed[0] = json["motor_0"];
+    m_target_speed[1] = json["motor_1"];
+    m_target_speed[2] = json["motor_2"];
+    m_target_speed[3] = json["motor_3"];
 
     std::cout << message->get_payload() << std::endl;
 }
@@ -103,23 +112,19 @@ void AutoState::enter()
 {
     ROS_INFO("start");
 
-    wiringPiSetup();
-    
-    pinMode(8, OUTPUT);
-
-    digitalWrite(8, 1);
+    m_state_machine = StateMachine(std::make_shared<ScanState>());
 }
 
 void AutoState::exit()
 {
     ROS_INFO("stop");
-
-    digitalWrite(8, 0);
 }
 
 std::optional<std::shared_ptr<State>> AutoState::update()
 {
     ROS_INFO("update");
+
+    m_state_machine.update();
 
     return { };
 }

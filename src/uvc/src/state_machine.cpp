@@ -4,13 +4,13 @@ void State::enter()
 {
 }
 
+void State::exit()
+{
+}
+
 std::optional<std::shared_ptr<State>> State::update()
 {
     return { };
-}
-
-void State::exit()
-{
 }
 
 StateMachine::StateMachine(std::shared_ptr<State> const &state) : m_state(state)
