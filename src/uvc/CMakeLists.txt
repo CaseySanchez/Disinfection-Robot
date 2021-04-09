@@ -18,6 +18,7 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
 ## Declare ROS messages and services
+add_message_files(FILES gyr.msg acc.msg mag.msg)
 add_service_files(FILES get_mode.srv set_mode.srv)
 
 ## Generate added messages and services
