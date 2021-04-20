@@ -17,7 +17,7 @@ class IdleState : private State
 {
     void enter() override;
     void exit() override;
-    std::optional<std::shared_ptr<State>> update() override;
+    std::optional<std::string> update() override;
 };
 
 class ManualState : private State
@@ -31,11 +31,9 @@ class ManualState : private State
     std::array<float, 4> m_motor_speed;
     std::array<float, 4> m_target_speed;
 
-    StateMachine m_state_machine;
-
     void enter() override;
     void exit() override;
-    std::optional<std::shared_ptr<State>> update() override;
+    std::optional<std::string> update() override;
 
     void serverThread();
 
@@ -46,74 +44,7 @@ class ManualState : private State
 
 class AutoState : private State
 {
-    StateMachine m_state_machine;
-
-    class ScanState : private State
-    {
-        int i;
-
-        void enter() override
-        {
-            ROS_INFO("Scan enter");
-        }
-
-        void exit() override
-        {
-            ROS_INFO("Scan exit");
-        }
-
-        std::optional<std::shared_ptr<State>> update() override
-        {
-            if (i++ > 10) {
-                return std::make_shared<PlanState>();
-            }
-
-            return std::make_shared<NavigateState>();
-        }
-
-    public:
-        ScanState() : i(0)
-        {
-        }
-    };
-
-    class NavigateState : private State
-    {
-        void enter() override
-        {
-            ROS_INFO("Navigate enter");
-        }
-
-        void exit() override
-        {
-            ROS_INFO("Navigate exit");
-        }
-
-        std::optional<std::shared_ptr<State>> update() override
-        {
-            return std::make_shared<ScanState>();
-        }
-    };
-
-    class PlanState : private State
-    {
-        void enter() override
-        {
-            ROS_INFO("Plan enter");
-        }
-
-        void exit() override
-        {
-            ROS_INFO("Plan exit");
-        }
-
-        std::optional<std::shared_ptr<State>> update() override
-        {
-            return { };
-        }
-    };
-
     void enter() override;
     void exit() override;
-    std::optional<std::shared_ptr<State>> update() override;
+    std::optional<std::string> update() override;
 };

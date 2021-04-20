@@ -1,6 +1,8 @@
 #pragma once
 
 #include <memory>
+#include <map>
+#include <string>
 #include <optional>
 
 class State
@@ -10,18 +12,20 @@ class State
     virtual void enter();
 
     virtual void exit();
-    
-    virtual std::optional<std::shared_ptr<State>> update();
+
+    virtual std::optional<std::string> update();
 };
 
 class StateMachine
 {
+    std::map<std::string, std::shared_ptr<State>> m_state_map;
+
     std::shared_ptr<State> m_state;
 
 public:
-    StateMachine(std::shared_ptr<State> const &state = State());
+    StateMachine(std::map<std::string, std::shared_ptr<State>> const &state_map, std::string const &initial_state);
 
     void update();
 
-    void setState(std::shared_ptr<State> const &state);
+    void transition(std::string const &state);
 };

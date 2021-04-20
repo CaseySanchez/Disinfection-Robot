@@ -8,7 +8,7 @@ void IdleState::exit()
 {
 }
 
-std::optional<std::shared_ptr<State>> IdleState::update()
+std::optional<std::string> IdleState::update()
 {
     return { };
 }
@@ -48,7 +48,7 @@ void ManualState::exit()
     m_thread.join();
 }
 
-std::optional<std::shared_ptr<State>> ManualState::update()
+std::optional<std::string> ManualState::update()
 {
     std::lock_guard<std::mutex> lock_guard(m_mutex);
 
@@ -111,8 +111,6 @@ void ManualState::messageHandler(websocketpp::connection_hdl connection_hdl, web
 void AutoState::enter()
 {
     ROS_INFO("start");
-
-    m_state_machine = StateMachine(std::make_shared<ScanState>());
 }
 
 void AutoState::exit()
@@ -120,11 +118,9 @@ void AutoState::exit()
     ROS_INFO("stop");
 }
 
-std::optional<std::shared_ptr<State>> AutoState::update()
+std::optional<std::string> AutoState::update()
 {
     ROS_INFO("update");
-
-    m_state_machine.update();
 
     return { };
 }

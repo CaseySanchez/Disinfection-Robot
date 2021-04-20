@@ -1,7 +1,11 @@
 #include "core_node.hpp"
 
-CoreNode::CoreNode() : ros::NodeHandle("~"), m_state_machine(std::make_shared<IdleState>())
+CoreNode::CoreNode() : ros::NodeHandle("~")
 {
+    std::map<std::string, std::shared_ptr<State>> state_map = { { "idle", std::make_shared<IdleState>() }, { "manual", std::make_shared<ManualState>() }, { "auto", std::make_shared<AutoState>() } };
+
+    m_state_machine = StateMachine(state_map, "idle");
+
     m_get_state_service = advertiseService("get_state", &CoreNode::onGetState, this);
     m_set_state_service = advertiseService("set_state", &CoreNode::onSetState, this);
 }
@@ -27,17 +31,17 @@ bool CoreNode::onSetState(uvc::set_state::Request &request, uvc::set_state::Resp
 
     switch (state) {
     case IDLE:
-        m_state_machine.setState(std::make_shared<IdleState>());
+        m_state_machine.transition("idle");
         
         break;
 
     case MANUAL:
-        m_state_machine.setState(std::make_shared<ManualState>());
+        m_state_machine.transition("manual");
 
         break;
     
     case AUTO:
-        m_state_machine.setState(std::make_shared<AutoState>());
+        m_state_machine.transition("auto");
 
         break;
 
@@ -60,9 +64,9 @@ int main(int argc, char **argv)
     CoreNode core_node;
     
     while (ros::ok()) {
-        ros::spinOnce();
-
         core_node.update();
+
+        ros::spinOnce();
     }
 
     return 0;

@@ -18,12 +18,12 @@ public:
 	{
 	}
 
-	Eigen::Matrix<double, dim, 1> State() const
+	Eigen::Matrix<double, dim, 1> state() const
 	{
 		return m_state;
 	}
 
-	Eigen::Matrix<double, dim, dim> Covariance() const
+	Eigen::Matrix<double, dim, dim> covariance() const
 	{
 		return m_covariance;
 	}
@@ -41,15 +41,15 @@ public:
 	{
 	}
 
-	void Predict(double const &delta_time)
+	void predict(double const &delta_time)
 	{
 		m_covariance += (m_sigma * delta_time).asDiagonal();
 	}
 
-	void Update(Measurement<dim> const &measurement) 
+	void update(Measurement<dim> const &measurement) 
 	{
-		Eigen::Matrix<double, dim, 1> const innovation_state = measurement.State() - m_state;
-		Eigen::Matrix<double, dim, dim> const innovation_covariance = measurement.Covariance() + m_covariance;
+		Eigen::Matrix<double, dim, 1> const innovation_state = measurement.state() - m_state;
+		Eigen::Matrix<double, dim, dim> const innovation_covariance = measurement.covariance() + m_covariance;
 
 		Eigen::FullPivLU<Eigen::Matrix<double, dim, dim>> const lower_upper = innovation_covariance.fullPivLu();
 		Eigen::Matrix<double, dim, dim> const kalman_gain = m_covariance * lower_upper.inverse();
@@ -59,7 +59,7 @@ public:
 		m_covariance = (Eigen::Matrix<double, dim, dim>::Identity() - kalman_gain) * m_covariance;
 	}
 
-	Eigen::Matrix<double, dim, 1> State() const
+	Eigen::Matrix<double, dim, 1> state() const
 	{
 		return m_state;
 	}

@@ -2,9 +2,7 @@
 
 IMUNode::IMUNode(int32_t const &FS_G, int32_t const &FS_XL, int32_t const &FS_M) : ros::NodeHandle("~"), m_berry_imu(FS_G, FS_XL, FS_M)
 {
-    m_gyr_publisher = advertise<uvc::gyr>("gyr", 1000);
-    m_acc_publisher = advertise<uvc::acc>("acc", 1000);
-    m_mag_publisher = advertise<uvc::mag>("mag", 1000);
+    m_imu_publisher = advertise<uvc::imu>("imu", 1000);
 }
 
 void IMUNode::publish()
@@ -13,25 +11,21 @@ void IMUNode::publish()
     Eigen::Vector3d const acc = m_berry_imu.readAcc();
     Eigen::Vector3d const mag = m_berry_imu.readMag();
 
-    uvc::gyr gyr_msg;
-    uvc::acc acc_msg;
-    uvc::mag mag_msg;
+    uvc::imu imu_msg;
 
-    gyr_msg.x = gyr.x();
-    gyr_msg.y = gyr.y();
-    gyr_msg.z = gyr.z();
+    imu_msg.gyr[0] = gyr.x();
+    imu_msg.gyr[1] = gyr.y();
+    imu_msg.gyr[2] = gyr.z();
 
-    acc_msg.x = acc.x();
-    acc_msg.y = acc.y();
-    acc_msg.z = acc.z();
+    imu_msg.acc[0] = acc.x();
+    imu_msg.acc[1] = acc.y();
+    imu_msg.acc[2] = acc.z();
 
-    mag_msg.x = mag.x();
-    mag_msg.y = mag.y();
-    mag_msg.z = mag.z();
+    imu_msg.mag[0] = mag.x();
+    imu_msg.mag[1] = mag.y();
+    imu_msg.mag[2] = mag.z();
 
-    m_gyr_publisher.publish(gyr_msg);
-    m_acc_publisher.publish(acc_msg);
-    m_mag_publisher.publish(mag_msg);
+    m_imu_publisher.publish(imu_msg);
 }
 
 int main(int argc, char **argv)

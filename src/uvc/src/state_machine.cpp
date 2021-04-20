@@ -8,30 +8,32 @@ void State::exit()
 {
 }
 
-std::optional<std::shared_ptr<State>> State::update()
+std::optional<std::string> State::update()
 {
     return { };
 }
 
-StateMachine::StateMachine(std::shared_ptr<State> const &state) : m_state(state)
+StateMachine::StateMachine(std::map<std::string, std::shared_ptr<State>> const &state_map, std::string const &initial_state) : m_state_map(state_map)
 {
+    m_state = m_state_map[initial_state];
+
     m_state->enter();
 }
 
 void StateMachine::update()
 {
-    std::optional<std::shared_ptr<State>> state = m_state->update();
+    std::optional<std::string> state = m_state->update();
 
     if (state.has_value()) {
-        setState(state.value());
+        transition(state.value());
     }
 }
 
-void StateMachine::setState(std::shared_ptr<State> const &state)
+void StateMachine::transition(std::string const &state)
 {
     m_state->exit();
 
-    m_state = state;
+    m_state = m_state_map[state];
 
     m_state->enter();
 }
