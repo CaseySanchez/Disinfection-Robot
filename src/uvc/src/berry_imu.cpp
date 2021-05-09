@@ -12,33 +12,32 @@ BerryIMU::BerryIMU(int32_t FS_G, int32_t FS_XL, int32_t FS_M) : m_FS_G(FS_G), m_
         throw std::runtime_error(std::string("Unable to open I2C bus with error: ") + strerror(errno));
     }
 
-    //Detect if BerryIMUv2 (Which uses a LSM9DS1) is connected
-    selectDevice(m_file, LSM9DS1_MAG_ADDRESS);
+    //Detect if BerryIMUv3 (Which uses a LSM6DSL and LIS3MDL) is connected
+	
+    selectDevice(file, LSM6DSL_ADDRESS);
+	
+    int LSM6DSL_WHO_M_response = i2c_smbus_read_byte_data(file, LSM6DSL_WHO_AM_I);
 
-    int32_t LSM9DS1_WHO_M_response = i2c_smbus_read_byte_data(m_file, LSM9DS1_WHO_AM_I_M);
+	selectDevice(file, LIS3MDL_ADDRESS);	
+	
+    int LIS3MDL_WHO_XG_response = i2c_smbus_read_byte_data(file, LIS3MDL_WHO_AM_I);
 
-    selectDevice(m_file, LSM9DS1_GYR_ADDRESS);
-
-    int32_t LSM9DS1_WHO_XG_response = i2c_smbus_read_byte_data(m_file, LSM9DS1_WHO_AM_I_XG);
-
-    if (LSM9DS1_WHO_XG_response != 0x68 || LSM9DS1_WHO_M_response != 0x3d) {
-        throw std::runtime_error("LSM9DS1 not detected");
+	if (LSM6DSL_WHO_M_response != 0x6A || LIS3MDL_WHO_XG_response != 0x3D){
+        throw std::runtime_error("LSM6DSL or LIS3MDL not detected");
     }
-    
-    // Enable the gyroscope
-    writeByte(LSM9DS1_GYR_ADDRESS, LSM9DS1_CTRL_REG4, 0b00111000);      // z, y, x axis enabled for gyro
-    writeByte(LSM9DS1_GYR_ADDRESS, LSM9DS1_CTRL_REG1_G, 0b10100000 | (FS_G_bits[m_FS_G] << 3));    // Gyro ODR = 476Hz, 245 dps
-    writeByte(LSM9DS1_GYR_ADDRESS, LSM9DS1_ORIENT_CFG_G, 0b10111000);   // Swap orientation 
+
+    //Enable  gyroscope
+    writeByte(LSM6DSL_ADDRESS, LSM6DSL_CTRL2_G, 0b10010000 | (FS_G_bits[m_FS_G] << 4));        // ODR 3.3 kHz, 2000 dps
 
     // Enable the accelerometer
-    writeByte(LSM9DS1_ACC_ADDRESS, LSM9DS1_CTRL_REG5_XL, 0b00111000);   // z, y, x axis enabled for accelerometer
-    writeByte(LSM9DS1_ACC_ADDRESS, LSM9DS1_CTRL_REG6_XL, 0b00100000 | (FS_XL_bits[m_FS_XL] << 3));   // +/- 2g
+    writeByte(LSM6DSL_ADDRESS, LSM6DSL_CTRL1_XL, 0b10010011 | (FS_XL_bits[m_FS_XL] << 4));       // ODR 3.33 kHz, +/- 8g , BW = 400hz
+    writeByte(LSM6DSL_ADDRESS, LSM6DSL_CTRL8_XL, 0b11001000);       // Low pass filter enabled, BW9, composite filter
+    writeByte(LSM6DSL_ADDRESS, LSM6DSL_CTRL3_C, 0b01000100);        // Enable Block Data update, increment during multi byte read
 
-    //Enable the magnetometer
-    writeByte(LSM9DS1_MAG_ADDRESS, LSM9DS1_CTRL_REG1_M, 0b10011100);   // Temp compensation enabled,Low power mode mode,80Hz ODR
-    writeByte(LSM9DS1_MAG_ADDRESS, LSM9DS1_CTRL_REG2_M, 0b00000000 | (FS_M_bits[m_FS_M] << 5));   // +/-12gauss
-    writeByte(LSM9DS1_MAG_ADDRESS, LSM9DS1_CTRL_REG3_M, 0b00000000);   // continuous update
-    writeByte(LSM9DS1_MAG_ADDRESS, LSM9DS1_CTRL_REG4_M, 0b00000000);   // lower power mode for Z axis
+    //Enable  magnetometer
+    writeByte(LIS3MDL_ADDRESS, LIS3MDL_CTRL_REG1, 0b11011100);     // Temp sesnor enabled, High performance, ODR 80 Hz, FAST ODR disabled and Selft test disabled.
+    writeByte(LIS3MDL_ADDRESS, LIS3MDL_CTRL_REG2, 0b00000000 | (FS_M_bits[m_FS_M] << 1));     // +/- 8 gauss
+    writeByte(LIS3MDL_ADDRESS, LIS3MDL_CTRL_REG3, 0b00000000);     // Continuous-conversion mode
 }
 
 // Convert to SI units [mdeg/sec]->[rad/sec]
@@ -48,7 +47,7 @@ Eigen::Vector3d BerryIMU::readGyr()
     
     int16_t raw[3];
     
-    readBytes(LSM9DS1_GYR_ADDRESS, LSM9DS1_OUT_X_L_G, 6, reinterpret_cast<uint8_t *>(&raw[0]));
+    readBytes(LSM6DSL_ADDRESS, LSM6DSL_OUT_X_L_G, 6, reinterpret_cast<uint8_t *>(&raw[0]));
     
     Eigen::Vector3d gyr;
 
@@ -66,7 +65,7 @@ Eigen::Vector3d BerryIMU::readAcc()
     
     int16_t raw[3];
     
-    readBytes(LSM9DS1_ACC_ADDRESS, LSM9DS1_OUT_X_L_XL, 6, reinterpret_cast<uint8_t *>(&raw[0]));
+    readBytes(LSM6DSL_ADDRESS, LSM6DSL_OUT_X_L_XL, 6, reinterpret_cast<uint8_t *>(&raw[0]));
     
     Eigen::Vector3d acc;
 
@@ -77,14 +76,14 @@ Eigen::Vector3d BerryIMU::readAcc()
     return acc;
 }
 
-// Convert to SI units [mGauss]->[Tesla]
+// Convert to SI units [Gauss]->[Tesla]
 Eigen::Vector3d BerryIMU::readMag()
 {
-    double constexpr conversion { 1.0 / 10000.0 / 1000.0 };
+    double constexpr conversion { 1.0 / 10000.0 };
     
     int16_t raw[3];
     
-    readBytes(LSM9DS1_MAG_ADDRESS, LSM9DS1_OUT_X_L_M, 6, reinterpret_cast<uint8_t *>(&raw[0]));
+    readBytes(LIS3MDL_ADDRESS, LIS3MDL_OUT_X_L, 6, reinterpret_cast<uint8_t *>(&raw[0]));
     
     Eigen::Vector3d mag;
 
@@ -93,96 +92,6 @@ Eigen::Vector3d BerryIMU::readMag()
     mag[2] = static_cast<double>(raw[2]) * FS_M_sensitivity[m_FS_M] * conversion;
 
     return mag;
-}
-
-Eigen::Vector3d BerryIMU::computeGyrBias()
-{
-    // Must be less than 32
-    uint8_t constexpr samples { 31 };
-
-    writeByte(LSM9DS1_GYR_ADDRESS, LSM9DS1_CTRL_REG9, 0b00000010);
-    writeByte(LSM9DS1_GYR_ADDRESS, LSM9DS1_FIFO_CTRL, 0b00100000 | samples);
-    
-    uint8_t fifo_src_data = 0;
-    
-    while(fifo_src_data < samples) {
-        readByte(LSM9DS1_GYR_ADDRESS, LSM9DS1_FIFO_SRC, &fifo_src_data);
-        
-        fifo_src_data &= 0x3F;
-    }
-    
-    Eigen::Vector3d gyr_bias = Eigen::Vector3d::Zero();
-
-    for (uint8_t i = 0; i < samples; ++i) {
-        gyr_bias += readGyr();
-    }
-    
-    gyr_bias /= static_cast<double>(samples);
-    
-    writeByte(LSM9DS1_GYR_ADDRESS, LSM9DS1_CTRL_REG9, 0b00000000);
-    writeByte(LSM9DS1_GYR_ADDRESS, LSM9DS1_FIFO_CTRL, 0b00000000);
-
-    return gyr_bias;
-}
-
-Eigen::Vector3d BerryIMU::computeAccBias()
-{
-    // Must be less than 32
-    uint8_t constexpr samples { 31 };
-
-    writeByte(LSM9DS1_ACC_ADDRESS, LSM9DS1_CTRL_REG9, 0b00000010);
-    writeByte(LSM9DS1_ACC_ADDRESS, LSM9DS1_FIFO_CTRL, 0b00100000 | samples);
-    
-    uint8_t fifo_src_data = 0;
-    
-    while(fifo_src_data < samples) {
-        readByte(LSM9DS1_ACC_ADDRESS, LSM9DS1_FIFO_SRC, &fifo_src_data);
-        
-        fifo_src_data &= 0x3F;
-    }
-    
-    Eigen::Vector3d acc_bias = Eigen::Vector3d::Zero();
-
-    for (int32_t i = 0; i < samples; ++i) {
-        acc_bias += readAcc();
-    }
-    
-    acc_bias /= static_cast<double>(samples);
-    
-    writeByte(LSM9DS1_ACC_ADDRESS, LSM9DS1_CTRL_REG9, 0b00000000);
-    writeByte(LSM9DS1_ACC_ADDRESS, LSM9DS1_FIFO_CTRL, 0b00000000);
-
-    return acc_bias;
-}
-
-Eigen::Vector3d BerryIMU::computeMagBias()
-{
-    // Must be less than 32
-    uint8_t constexpr samples { 31 };
-
-    writeByte(LSM9DS1_MAG_ADDRESS, LSM9DS1_CTRL_REG9, 0b00000010);
-    writeByte(LSM9DS1_MAG_ADDRESS, LSM9DS1_FIFO_CTRL, 0b00100000 | samples);
-    
-    uint8_t fifo_src_data = 0;
-    
-    while(fifo_src_data < samples) {
-        readByte(LSM9DS1_MAG_ADDRESS, LSM9DS1_FIFO_SRC, &fifo_src_data);
-        
-        fifo_src_data &= 0x3F;
-    }
-    
-    Eigen::Vector3d mag_bias = Eigen::Vector3d::Zero();
-    
-    for (int32_t i = 0; i < samples; ++i) {
-        mag_bias += readMag();
-    }
-    
-    mag_bias /= static_cast<double>(samples);
-
-    writeByte(LSM9DS1_MAG_ADDRESS, LSM9DS1_CTRL_REG9, 0b00000000);
-    writeByte(LSM9DS1_MAG_ADDRESS, LSM9DS1_FIFO_CTRL, 0b00000000);
-
-    return mag_bias;
 }
 
 void BerryIMU::selectDevice(int32_t file, int32_t addr)

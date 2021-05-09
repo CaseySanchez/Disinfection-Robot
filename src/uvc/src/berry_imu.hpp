@@ -15,11 +15,13 @@
 #include <eigen3/Eigen/Dense>
 
 #include "i2c-dev.h"
-#include "LSM9DS1.h"
+#include "LSM6DSL.h"
+#include "LIS3MDL.h"
 
 enum {
-	FS_G_245 = 0,
+	FS_G_250 = 0,
 	FS_G_500,
+	FS_G_1000,
 	FS_G_2000
 };
 
@@ -38,43 +40,45 @@ enum {
 };
 
 int32_t const FS_G_bits[3] = {
-	0b00,
-	0b01,
-	0b11
+	0b00, // FS_G_250
+	0b01, // FS_G_500
+	0b10, // FS_G_1000
+	0b11  // FS_G_2000
 };
 
 double const FS_G_sensitivity[3] = {
-	8.75,
-	17.5,
-	70.0
+	8.75, // FS_G_250
+	17.5, // FS_G_500
+	35.0, // FS_G_1000
+	70.0  // FS_G_2000
 };
 
 int32_t const FS_XL_bits[4] = {
-	0b00,
-	0b10,
-	0b11,
-	0b01
+	0b00, // FS_XL_2
+	0b10, // FS_XL_4
+	0b11, // FS_XL_8
+	0b01  // FS_XL_16
 };
 
 double const FS_XL_sensitivity[4] = {
-	0.061,
-	0.122,
-	0.244,
-	0.732
+	0.061, // FS_XL_2
+	0.122, // FS_XL_4
+	0.244, // FS_XL_8
+	0.488  // FS_XL_16
 };
 
 int32_t const FS_M_bits[4] = {
-	0b00,
-	0b01,
-	0b10,
-	0b11
+	0b00, // FS_M_4
+	0b01, // FS_M_8
+	0b10, // FS_M_12
+	0b11  // FS_M_16
 };
 
 double const FS_M_sensitivity[4] = {
-	0.14,
-	0.29,
-	0.43,
-	0.58
+	6842.0, // FS_M_4
+	3421.0, // FS_M_8
+	2281.0, // FS_M_12
+	1711.0  // FS_M_16
 };
 
 class BerryIMU
@@ -91,12 +95,8 @@ public:
 	Eigen::Vector3d readGyr();
 	// Convert to SI units [mG]->[m/s^2]
 	Eigen::Vector3d readAcc();
-	// Convert to SI units [mGauss]->[Tesla]
+	// Convert to SI units [Gauss]->[Tesla]
 	Eigen::Vector3d readMag();
-
-	Eigen::Vector3d computeGyrBias();
-	Eigen::Vector3d computeAccBias();
-	Eigen::Vector3d computeMagBias();
 
 private:
 	void selectDevice(int32_t file, int32_t addr);
