@@ -2,28 +2,37 @@
 
 IMUNode::IMUNode(int32_t const &FS_G, int32_t const &FS_XL, int32_t const &FS_M) : ros::NodeHandle("~"), m_berry_imu(FS_G, FS_XL, FS_M)
 {
+	m_gyr_bias = Eigen::Vector3d::Zero();
+	m_acc_bias = Eigen::Vector3d::Zero();
+	
+	Eigen::Vector3d gyr_bias;
+	Eigen::Vector3d acc_bias;
+	Eigen::Vector3d mag_bias;
+	
+	for (size_t i = 0; i < 32; ++i) {
+		m_berry_imu.readGyr(gyr_bias.data());
+		m_berry_imu.readAcc(acc_bias.data());
+		m_berry_imu.readMag(mag_bias.data());
+			
+		m_gyr_bias += gyr_bias;
+		m_acc_bias += acc_bias;
+		m_mag_bias += mag_bias;
+	}
+	
+	m_gyr_bias *= 1.0 / 32.0;
+	m_acc_bias *= 1.0 / 32.0;
+	m_mag_bias *= 1.0 / 32.0;
+	
     m_imu_publisher = advertise<uvc::imu>("imu", 1000);
 }
 
 void IMUNode::publish()
 {
-    Eigen::Vector3d const gyr = m_berry_imu.readGyr();
-    Eigen::Vector3d const acc = m_berry_imu.readAcc();
-    Eigen::Vector3d const mag = m_berry_imu.readMag();
-
     uvc::imu imu_msg;
-
-    imu_msg.gyr[0] = gyr.x();
-    imu_msg.gyr[1] = gyr.y();
-    imu_msg.gyr[2] = gyr.z();
-
-    imu_msg.acc[0] = acc.x();
-    imu_msg.acc[1] = acc.y();
-    imu_msg.acc[2] = acc.z();
-
-    imu_msg.mag[0] = mag.x();
-    imu_msg.mag[1] = mag.y();
-    imu_msg.mag[2] = mag.z();
+	
+	m_berry_imu.readGyr(msg.gyr);
+	m_berry_imu.readAcc(msg.acc);
+	m_berry_imu.readMag(msg.mag);
 
     m_imu_publisher.publish(imu_msg);
 }
