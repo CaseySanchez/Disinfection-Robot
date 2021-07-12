@@ -1,7 +1,3 @@
-/*
- * Copyright 2020 Casey Sanchez
- */
-
 #include "berry_imu.hpp"
 
 BerryIMU::BerryIMU(int32_t FS_G, int32_t FS_XL, int32_t FS_M) : m_FS_G(FS_G), m_FS_XL(FS_XL), m_FS_M(FS_M)
@@ -13,35 +9,35 @@ BerryIMU::BerryIMU(int32_t FS_G, int32_t FS_XL, int32_t FS_M) : m_FS_G(FS_G), m_
     }
 
     //Detect if BerryIMUv3 (Which uses a LSM6DSL and LIS3MDL) is connected
-	
-    selectDevice(file, LSM6DSL_ADDRESS);
-	
-    int LSM6DSL_WHO_M_response = i2c_smbus_read_byte_data(file, LSM6DSL_WHO_AM_I);
 
-	selectDevice(file, LIS3MDL_ADDRESS);	
-	
-    int LIS3MDL_WHO_XG_response = i2c_smbus_read_byte_data(file, LIS3MDL_WHO_AM_I);
+    selectDevice(m_file, LSM6DSL_ADDRESS);
 
-	if (LSM6DSL_WHO_M_response != 0x6A || LIS3MDL_WHO_XG_response != 0x3D){
+    int LSM6DSL_WHO_M_response = i2c_smbus_read_byte_data(m_file, LSM6DSL_WHO_AM_I);
+
+    selectDevice(m_file, LIS3MDL_ADDRESS);	
+
+    int LIS3MDL_WHO_XG_response = i2c_smbus_read_byte_data(m_file, LIS3MDL_WHO_AM_I);
+
+    if (LSM6DSL_WHO_M_response != 0x6A || LIS3MDL_WHO_XG_response != 0x3D){
         throw std::runtime_error("LSM6DSL or LIS3MDL not detected");
     }
-
+    
     //Enable  gyroscope
-    writeByte(LSM6DSL_ADDRESS, LSM6DSL_CTRL2_G, 0b10010000 | (FS_G_bits[m_FS_G] << 4));        // ODR 3.3 kHz, 2000 dps
+    writeByte(LSM6DSL_ADDRESS, LSM6DSL_CTRL2_G, 0b10010000 | (FS_G_bits[m_FS_G] << 2));        // ODR 3.3 kHz, 2000 dps
 
     // Enable the accelerometer
-    writeByte(LSM6DSL_ADDRESS, LSM6DSL_CTRL1_XL, 0b10010011 | (FS_XL_bits[m_FS_XL] << 4));       // ODR 3.33 kHz, +/- 8g , BW = 400hz
+    writeByte(LSM6DSL_ADDRESS, LSM6DSL_CTRL1_XL, 0b10010011 | (FS_XL_bits[m_FS_XL] << 2));       // ODR 3.33 kHz, +/- 8g , BW = 400hz
     writeByte(LSM6DSL_ADDRESS, LSM6DSL_CTRL8_XL, 0b11001000);       // Low pass filter enabled, BW9, composite filter
     writeByte(LSM6DSL_ADDRESS, LSM6DSL_CTRL3_C, 0b01000100);        // Enable Block Data update, increment during multi byte read
 
     //Enable  magnetometer
     writeByte(LIS3MDL_ADDRESS, LIS3MDL_CTRL_REG1, 0b11011100);     // Temp sesnor enabled, High performance, ODR 80 Hz, FAST ODR disabled and Selft test disabled.
-    writeByte(LIS3MDL_ADDRESS, LIS3MDL_CTRL_REG2, 0b00000000 | (FS_M_bits[m_FS_M] << 1));     // +/- 8 gauss
+    writeByte(LIS3MDL_ADDRESS, LIS3MDL_CTRL_REG2, 0b00000000 | (FS_M_bits[m_FS_M] << 5));     // +/- 8 gauss
     writeByte(LIS3MDL_ADDRESS, LIS3MDL_CTRL_REG3, 0b00000000);     // Continuous-conversion mode
 }
 
 // Convert to SI units [mdeg/sec]->[rad/sec]
-Eigen::Vector3d BerryIMU::readGyr()
+void BerryIMU::readGyr(double gyr[3])
 {
     double constexpr conversion { 3.14159265358979323846 / 180.0 / 1000.0 }; 
     
@@ -49,17 +45,13 @@ Eigen::Vector3d BerryIMU::readGyr()
     
     readBytes(LSM6DSL_ADDRESS, LSM6DSL_OUT_X_L_G, 6, reinterpret_cast<uint8_t *>(&raw[0]));
     
-    Eigen::Vector3d gyr;
-
     gyr[0] = static_cast<double>(raw[0]) * FS_G_sensitivity[m_FS_G] * conversion;
     gyr[1] = static_cast<double>(raw[1]) * FS_G_sensitivity[m_FS_G] * conversion;
     gyr[2] = static_cast<double>(raw[2]) * FS_G_sensitivity[m_FS_G] * conversion;
-
-    return gyr;
 }
 
 // Convert to SI units [mG]->[m/s^2]
-Eigen::Vector3d BerryIMU::readAcc()
+void BerryIMU::readAcc(double acc[3])
 {
     double constexpr conversion { 9.8 / 1000.0 };
     
@@ -67,17 +59,13 @@ Eigen::Vector3d BerryIMU::readAcc()
     
     readBytes(LSM6DSL_ADDRESS, LSM6DSL_OUT_X_L_XL, 6, reinterpret_cast<uint8_t *>(&raw[0]));
     
-    Eigen::Vector3d acc;
-
     acc[0] = static_cast<double>(raw[0]) * FS_XL_sensitivity[m_FS_XL] * conversion;
     acc[1] = static_cast<double>(raw[1]) * FS_XL_sensitivity[m_FS_XL] * conversion;
     acc[2] = static_cast<double>(raw[2]) * FS_XL_sensitivity[m_FS_XL] * conversion;
-
-    return acc;
 }
 
 // Convert to SI units [Gauss]->[Tesla]
-Eigen::Vector3d BerryIMU::readMag()
+void BerryIMU::readMag(double mag[3])
 {
     double constexpr conversion { 1.0 / 10000.0 };
     
@@ -85,13 +73,9 @@ Eigen::Vector3d BerryIMU::readMag()
     
     readBytes(LIS3MDL_ADDRESS, LIS3MDL_OUT_X_L, 6, reinterpret_cast<uint8_t *>(&raw[0]));
     
-    Eigen::Vector3d mag;
-
     mag[0] = static_cast<double>(raw[0]) * FS_M_sensitivity[m_FS_M] * conversion;
     mag[1] = static_cast<double>(raw[1]) * FS_M_sensitivity[m_FS_M] * conversion;
     mag[2] = static_cast<double>(raw[2]) * FS_M_sensitivity[m_FS_M] * conversion;
-
-    return mag;
 }
 
 void BerryIMU::selectDevice(int32_t file, int32_t addr)
@@ -105,7 +89,7 @@ void BerryIMU::readBytes(int32_t addr, uint8_t reg, uint8_t size, uint8_t *data)
 {
     selectDevice(m_file, addr);
 
-    int32_t result = i2c_smbus_read_i2c_block_data(m_file, 0x80 | reg, size, data);
+    int32_t result = i2c_smbus_read_i2c_block_data(m_file, reg, size, data);
 
     if (result != size) {
         throw std::runtime_error(std::string("Failed to read I2C bytes with error: ") + strerror(errno));

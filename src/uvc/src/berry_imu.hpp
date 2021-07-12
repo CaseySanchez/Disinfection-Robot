@@ -1,7 +1,3 @@
-/*
- * Copyright 2020 Casey Sanchez
- */
-
 #pragma once
 
 #include <stdint.h>
@@ -11,8 +7,6 @@
 #include <string.h>
 #include <string>
 #include <stdexcept>
-
-#include <eigen3/Eigen/Dense>
 
 #include "i2c-dev.h"
 #include "LSM6DSL.h"
@@ -39,14 +33,14 @@ enum {
 	FS_M_16
 };
 
-int32_t const FS_G_bits[3] = {
+int32_t const FS_G_bits[4] = {
 	0b00, // FS_G_250
 	0b01, // FS_G_500
 	0b10, // FS_G_1000
 	0b11  // FS_G_2000
 };
 
-double const FS_G_sensitivity[3] = {
+double const FS_G_sensitivity[4] = {
 	8.75, // FS_G_250
 	17.5, // FS_G_500
 	35.0, // FS_G_1000
@@ -92,11 +86,11 @@ public:
 	BerryIMU(int32_t FS_G, int32_t FS_XL, int32_t FS_M);
 
 	// Convert to SI units [mdeg/sec]->[rad/sec]
-	Eigen::Vector3d readGyr();
+	void readGyr(double gyr[3]);
 	// Convert to SI units [mG]->[m/s^2]
-	Eigen::Vector3d readAcc();
+	void readAcc(double acc[3]);
 	// Convert to SI units [Gauss]->[Tesla]
-	Eigen::Vector3d readMag();
+	void readMag(double mag[3]);
 
 private:
 	void selectDevice(int32_t file, int32_t addr);
